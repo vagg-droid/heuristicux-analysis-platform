@@ -1,0 +1,4 @@
+/* Minimal stylesheet placeholder.
+   The app uses Tailwind via CDN in index.html, but the HTML references /index.css.
+   Keeping this file prevents 404s and Vite build warnings. */
+

@@ -153,9 +153,13 @@ const App: React.FC = () => {
           const errStr = (err?.message || JSON.stringify(err)).toLowerCase();
           if (errStr.includes('429') || errStr.includes('quota') || errStr.includes('resource_exhausted')) {
             errorMessage = "QUOTA_EXHAUSTED";
+          } else if (errStr.includes('missing gemini_api_key') || errStr.includes('api key') || errStr.includes('unauthorized') || errStr.includes('permission')) {
+            errorMessage = "MISSING_OR_INVALID_API_KEY";
           } else if (errStr.includes('requested entity was not found')) {
              handleOpenKeySelector();
              return;
+          } else if (errStr.includes('model') && errStr.includes('not found')) {
+            errorMessage = "MODEL_NOT_FOUND";
           }
           setImages(prev => prev.map((item, i) => i === index ? { ...item, error: errorMessage, isLoading: false } : item));
         }
@@ -386,7 +390,29 @@ const App: React.FC = () => {
                       </button>
                     </div>
                   ) : activeImage.error ? (
-                    <div className="h-full flex flex-col items-center justify-center p-6 text-center text-rose-500 font-bold uppercase">Audit Failed.</div>
+                    <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+                      <div className="text-rose-500 font-bold uppercase mb-2">Audit Failed.</div>
+                      {activeImage.error === "QUOTA_EXHAUSTED" && (
+                        <div className="text-xs text-zinc-500 max-w-sm">
+                          Your Gemini quota is exhausted. Try again later or switch to a different model.
+                        </div>
+                      )}
+                      {activeImage.error === "MISSING_OR_INVALID_API_KEY" && (
+                        <div className="text-xs text-zinc-500 max-w-sm">
+                          Missing/invalid API key. For local dev set <span className="font-mono">GEMINI_API_KEY</span> in <span className="font-mono">.env.local</span>. For Vercel, set it in Project → Settings → Environment Variables.
+                        </div>
+                      )}
+                      {activeImage.error === "MODEL_NOT_FOUND" && (
+                        <div className="text-xs text-zinc-500 max-w-sm">
+                          This model isn’t available for your API key/project. Try switching the “Analysis Agent” model and retry.
+                        </div>
+                      )}
+                      {activeImage.error !== "QUOTA_EXHAUSTED" && activeImage.error !== "MISSING_OR_INVALID_API_KEY" && activeImage.error !== "MODEL_NOT_FOUND" && (
+                        <div className="text-xs text-zinc-500 max-w-sm">
+                          {activeImage.error}
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <>
                       {activeImage.analysis && (
